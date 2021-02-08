@@ -41,6 +41,7 @@ Copyright_License {
 #include "InfoBoxes/Content/Trace.hpp"
 #include "InfoBoxes/Content/Weather.hpp"
 #include "InfoBoxes/Content/Airspace.hpp"
+#include "InfoBoxes/Content/Radio.hpp"
 
 #include "Util/Macros.hpp"
 #include "Language/Language.hpp"
@@ -1287,9 +1288,28 @@ static constexpr MetaData meta_data[] = {
        "in the current task, the center of a selected goto waypoint "
        "or the target within the AAT sector for AAT tasks."),
     IBFHelper<InfoBoxContentNextArrow>::Create,
+    e_ActiveRadio,
+    e_ActiveRadio,
+  },
+  // Radio
+  {
+    N_("Active Radio Frequency"),
+    N_("Act Freq"),
+    N_("The currently active Radio Frequency"),
+    UpdateInfoBoxActiveFrequency,
+    e_StandbyRadio,
+    e_StandbyRadio,
+    },
+
+  {
+    N_("Standby Radio Frequency"),
+    N_("Stby Freq"),
+    N_("The currently standby Radio Frequency"),
+    UpdateInfoBoxStandbyFrequency,
     NEXT_ARROW,
     NEXT_ARROW,
   },
+
 };
 
 static_assert(ARRAY_SIZE(meta_data) == NUM_TYPES,
