@@ -41,7 +41,7 @@ Copyright_License {
 #include "Look/DialogLook.hpp"
 #include "Interface.hpp"
 #include "Language/Language.hpp"
-#include "Util/StringAPI.hpp"
+#include "Util/StringAPI.hxx"
 
 #include <vector>
 #include <assert.h>
@@ -254,8 +254,8 @@ PlaneListWidget::NewClicked()
     StaticString<42> filename(plane.registration);
     filename += _T(".xcp");
 
-    StaticString<MAX_PATH> path;
-    LocalPath(path.buffer(), filename);
+    StaticString<MAX_PATH> buffer;
+    const auto path = LocalPath(buffer.buffer(), filename);
 
     if (File::Exists(path)) {
       StaticString<256> tmp;

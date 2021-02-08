@@ -23,7 +23,7 @@ Copyright_License {
 
 #include "Screen/Canvas.hpp"
 #include "Asset.hpp"
-#include "Util/StringAPI.hpp"
+#include "Util/StringAPI.hxx"
 
 #ifndef NDEBUG
 #include "Util/UTF8.hpp"
@@ -33,24 +33,6 @@ Copyright_License {
 #include <assert.h>
 #include <string.h>
 #include <winuser.h>
-
-const PixelSize
-Canvas::CalcTextSize(const TCHAR *text, size_t length) const
-{
-  assert(text != nullptr);
-
-  TCHAR *duplicated = _tcsdup(text);
-  duplicated[length] = 0;
-
-#ifndef UNICODE
-  assert(ValidateUTF8(duplicated));
-#endif
-
-  const PixelSize size = CalcTextSize(duplicated);
-  free(duplicated);
-
-  return size;
-}
 
 void
 Canvas::DrawFormattedText(PixelRect *rc, const TCHAR *text, unsigned format)

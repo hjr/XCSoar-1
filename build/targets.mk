@@ -522,9 +522,6 @@ ifeq ($(TARGET),ANDROID)
     LLVM_TARGET = armv7a-none-linux-androideabi
     TARGET_ARCH += -march=armv7-a -mfloat-abi=softfp
     HAVE_FPU := y
-
-    # workaround for "... uses VFP register arguments, output does not"
-    TARGET_ARCH += -Wl,--no-warn-mismatch
   endif
 
   ifeq ($(ARMV7)$(NEON),yy)
@@ -585,6 +582,10 @@ endif
 ifeq ($(HAVE_CE),y)
   TARGET_CPPFLAGS += -D_WIN32_WCE=0x0$(CE_MAJOR)$(CE_MINOR)
   TARGET_CPPFLAGS += -DWIN32_PLATFORM_PSPC=$(CE_MAJOR)$(CE_MINOR)
+
+  # on mingw32ce, this macro is needed to make stdint.h define the
+  # limit macros (used by JasPer)
+  TARGET_CXXFLAGS += -D__STDC_LIMIT_MACROS
 endif
 
 ifeq ($(HAVE_WIN32),y)

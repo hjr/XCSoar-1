@@ -27,6 +27,7 @@ Copyright_License {
 #include "LogFile.hpp"
 #include "Interface.hpp"
 #include "MainWindow.hpp"
+#include "OS/FileUtil.hpp"
 
 #ifdef KOBO
 #include "Event/Globals.hpp"
@@ -43,6 +44,7 @@ Display::LoadOrientation(VerboseOperationEnvironment &env)
 
   DisplayOrientation orientation =
     CommonInterface::GetUISettings().display.orientation;
+
 #ifdef KOBO
   /* on the Kobo, the display orientation must be loaded explicitly
      (portrait), because the hardware default is landscape */
@@ -86,4 +88,26 @@ Display::RestoreOrientation()
 #ifdef KOBO
   event_queue->SetMouseRotation(DisplayOrientation::DEFAULT);
 #endif
+}
+
+DisplayOrientation
+Display::DetectInitialOrientation()
+{
+  auto orientation = DisplayOrientation::DEFAULT;
+
+#ifdef MESA_KMS
+  // When running in DRM/KMS mode, infer the display orientation from the linux
+  // console rotation.
+  char buf[3];
+  const TCHAR *rotatepath = "/sys/class/graphics/fbcon/rotate";
+  if (File::ReadString(rotatepath, buf, sizeof(buf))) {
+    switch (*buf) {
+    case '0': orientation = DisplayOrientation::LANDSCAPE; break;
+    case '1': orientation = DisplayOrientation::REVERSE_PORTRAIT; break;
+    case '2': orientation = DisplayOrientation::REVERSE_LANDSCAPE; break;
+    case '3': orientation = DisplayOrientation::PORTRAIT; break;
+    }
+  }
+#endif
+  return orientation;
 }

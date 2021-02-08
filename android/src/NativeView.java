@@ -251,8 +251,15 @@ class NativeView extends SurfaceView
   }
 
   private boolean setRequestedOrientation(int requestedOrientation) {
-    ((Activity)getContext()).setRequestedOrientation(requestedOrientation);
-    return true;
+    try {
+      ((Activity)getContext()).setRequestedOrientation(requestedOrientation);
+      return true;
+    } catch (Exception e) {
+      /* even though undocumented, there are reports of
+         setRequestedOrientation() throwing IllegalStateException */
+      Log.e(TAG, "setRequestedOrientation error", e);
+      return false;
+    }
   }
 
   @Override public void surfaceCreated(SurfaceHolder holder) {
@@ -351,7 +358,12 @@ class NativeView extends SurfaceView
     BitmapFactory.Options opts = new BitmapFactory.Options();
     opts.inScaled = false;
 
-    return BitmapFactory.decodeResource(resources, resourceId, opts);
+    try {
+      return BitmapFactory.decodeResource(resources, resourceId, opts);
+    } catch (IllegalArgumentException e) {
+      Log.e(TAG, "Failed to load bitmap", e);
+      return null;
+    }
   }
 
   /**

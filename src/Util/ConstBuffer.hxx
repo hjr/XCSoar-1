@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2015 Max Kellermann <max@duempel.org>
+ * Copyright 2013-2020 Max Kellermann <max.kellermann@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,39 +43,45 @@ struct ConstBuffer;
 
 template<>
 struct ConstBuffer<void> {
-	typedef size_t size_type;
-	typedef const void *pointer_type;
-	typedef pointer_type const_pointer_type;
-	typedef pointer_type iterator;
-	typedef pointer_type const_iterator;
+	typedef std::size_t size_type;
+	typedef void value_type;
+	typedef const void *pointer;
+	typedef pointer const_pointer;
+	typedef pointer iterator;
+	typedef pointer const_iterator;
 
-	pointer_type data;
+	pointer data;
 	size_type size;
 
 	ConstBuffer() = default;
 
-	constexpr ConstBuffer(std::nullptr_t):data(nullptr), size(0) {}
+	constexpr ConstBuffer(std::nullptr_t) noexcept
+		:data(nullptr), size(0) {}
 
-	constexpr ConstBuffer(pointer_type _data, size_type _size)
+	constexpr ConstBuffer(pointer _data, size_type _size) noexcept
 		:data(_data), size(_size) {}
 
-	constexpr static ConstBuffer Null() {
-		return ConstBuffer(nullptr, 0);
-	}
-
-	constexpr static ConstBuffer<void> FromVoid(ConstBuffer<void> other) {
+	constexpr static ConstBuffer<void> FromVoid(ConstBuffer<void> other) noexcept {
 		return other;
 	}
 
-	constexpr ConstBuffer<void> ToVoid() const {
+	constexpr ConstBuffer<void> ToVoid() const noexcept {
 		return *this;
 	}
 
-	constexpr bool IsNull() const {
+	constexpr bool IsNull() const noexcept {
 		return data == nullptr;
 	}
 
-	constexpr bool IsEmpty() const {
+	constexpr bool operator==(std::nullptr_t) const noexcept {
+		return data == nullptr;
+	}
+
+	constexpr bool operator!=(std::nullptr_t) const noexcept {
+		return data != nullptr;
+	}
+
+	constexpr bool empty() const noexcept {
 		return size == 0;
 	}
 };
@@ -85,33 +91,44 @@ struct ConstBuffer<void> {
  */
 template<typename T>
 struct ConstBuffer {
-	typedef size_t size_type;
-	typedef const T &reference_type;
-	typedef reference_type const_reference_type;
-	typedef const T *pointer_type;
-	typedef pointer_type const_pointer_type;
-	typedef pointer_type iterator;
-	typedef pointer_type const_iterator;
+	typedef std::size_t size_type;
+	typedef T value_type;
+	typedef const T &reference;
+	typedef reference const_reference;
+	typedef const T *pointer;
+	typedef pointer const_pointer;
+	typedef pointer iterator;
+	typedef pointer const_iterator;
 
-	pointer_type data;
+	pointer data;
 	size_type size;
 
 	ConstBuffer() = default;
 
-	constexpr ConstBuffer(std::nullptr_t):data(nullptr), size(0) {}
+	constexpr ConstBuffer(std::nullptr_t) noexcept
+		:data(nullptr), size(0) {}
 
-	constexpr ConstBuffer(pointer_type _data, size_type _size)
+	constexpr ConstBuffer(pointer _data, size_type _size) noexcept
 		:data(_data), size(_size) {}
+
+	constexpr ConstBuffer(pointer _data, pointer _end) noexcept
+		:data(_data), size(_end - _data) {}
 
 	/**
 	 * Convert array to ConstBuffer instance.
 	 */
 	template<size_type _size>
-	constexpr ConstBuffer(const T (&_data)[_size])
+	constexpr ConstBuffer(const T (&_data)[_size]) noexcept
 		:data(_data), size(_size) {}
 
-	constexpr static ConstBuffer Null() {
-		return ConstBuffer(nullptr, 0);
+	/**
+	 * Cast a ConstBuffer<void> to a ConstBuffer<T>, rounding down
+	 * to the next multiple of T's size.
+	 */
+	static constexpr ConstBuffer<T> FromVoidFloor(ConstBuffer<void> other) noexcept {
+		static_assert(sizeof(T) > 0, "Empty base type");
+		return ConstBuffer<T>(pointer(other.data),
+				      other.size / sizeof(T));
 	}
 
 	/**
@@ -123,31 +140,38 @@ struct ConstBuffer {
 #ifdef NDEBUG
 	constexpr
 #endif
-	static ConstBuffer<T> FromVoid(ConstBuffer<void> other) {
+	static ConstBuffer<T> FromVoid(ConstBuffer<void> other) noexcept {
 		static_assert(sizeof(T) > 0, "Empty base type");
 #ifndef NDEBUG
 		assert(other.size % sizeof(T) == 0);
 #endif
-		return ConstBuffer<T>(pointer_type(other.data),
-				      other.size / sizeof(T));
+		return FromVoidFloor(other);
 	}
 
-	constexpr ConstBuffer<void> ToVoid() const {
+	constexpr ConstBuffer<void> ToVoid() const noexcept {
 		static_assert(sizeof(T) > 0, "Empty base type");
 		return ConstBuffer<void>(data, size * sizeof(T));
 	}
 
-	constexpr bool IsNull() const {
+	constexpr bool IsNull() const noexcept {
 		return data == nullptr;
 	}
 
-	constexpr bool IsEmpty() const {
+	constexpr bool operator==(std::nullptr_t) const noexcept {
+		return data == nullptr;
+	}
+
+	constexpr bool operator!=(std::nullptr_t) const noexcept {
+		return data != nullptr;
+	}
+
+	constexpr bool empty() const noexcept {
 		return size == 0;
 	}
 
 	template<typename U>
 	gcc_pure
-	bool Contains(U &&u) const {
+	bool Contains(U &&u) const noexcept {
 		for (const auto &i : *this)
 			if (u == i)
 				return true;
@@ -155,26 +179,26 @@ struct ConstBuffer {
 		return false;
 	}
 
-	constexpr iterator begin() const {
+	constexpr iterator begin() const noexcept {
 		return data;
 	}
 
-	constexpr iterator end() const {
+	constexpr iterator end() const noexcept {
 		return data + size;
 	}
 
-	constexpr const_iterator cbegin() const {
+	constexpr const_iterator cbegin() const noexcept {
 		return data;
 	}
 
-	constexpr const_iterator cend() const {
+	constexpr const_iterator cend() const noexcept {
 		return data + size;
 	}
 
 #ifdef NDEBUG
 	constexpr
 #endif
-	reference_type operator[](size_type i) const {
+	reference operator[](size_type i) const noexcept {
 #ifndef NDEBUG
 		assert(i < size);
 #endif
@@ -189,9 +213,9 @@ struct ConstBuffer {
 #ifdef NDEBUG
 	constexpr
 #endif
-	reference_type front() const {
+	reference front() const noexcept {
 #ifndef NDEBUG
-		assert(!IsEmpty());
+		assert(!empty());
 #endif
 		return data[0];
 	}
@@ -203,9 +227,9 @@ struct ConstBuffer {
 #ifdef NDEBUG
 	constexpr
 #endif
-	reference_type back() const {
+	reference back() const noexcept {
 #ifndef NDEBUG
-		assert(!IsEmpty());
+		assert(!empty());
 #endif
 		return data[size - 1];
 	}
@@ -214,9 +238,9 @@ struct ConstBuffer {
 	 * Remove the first element (by moving the head pointer, does
 	 * not actually modify the buffer).  Buffer must not be empty.
 	 */
-	void pop_front() {
+	void pop_front() noexcept {
 #ifndef NDEBUG
-		assert(!IsEmpty());
+		assert(!empty());
 #endif
 
 		++data;
@@ -227,9 +251,9 @@ struct ConstBuffer {
 	 * Remove the last element (by moving the tail pointer, does
 	 * not actually modify the buffer).  Buffer must not be empty.
 	 */
-	void pop_back() {
+	void pop_back() noexcept {
 #ifndef NDEBUG
-		assert(!IsEmpty());
+		assert(!empty());
 #endif
 
 		--size;
@@ -239,19 +263,46 @@ struct ConstBuffer {
 	 * Remove the first element and return a reference to it.
 	 * Buffer must not be empty.
 	 */
-	reference_type shift() {
-		reference_type result = front();
+	reference shift() noexcept {
+		reference result = front();
 		pop_front();
 		return result;
 	}
 
-	void skip_front(size_type n) {
+	void skip_front(size_type n) noexcept {
 #ifndef NDEBUG
 		assert(size >= n);
 #endif
 
 		data += n;
 		size -= n;
+	}
+
+	/**
+	 * Move the front pointer to the given address, and adjust the
+	 * size attribute to retain the old end address.
+	 */
+	void MoveFront(pointer new_data) noexcept {
+#ifndef NDEBUG
+		assert(IsNull() == (new_data == nullptr));
+		assert(new_data <= end());
+#endif
+
+		size = end() - new_data;
+		data = new_data;
+	}
+
+	/**
+	 * Move the end pointer to the given address (by adjusting the
+	 * size).
+	 */
+	void SetEnd(pointer new_end) noexcept {
+#ifndef NDEBUG
+		assert(IsNull() == (new_end == nullptr));
+		assert(new_end >= begin());
+#endif
+
+		size = new_end - data;
 	}
 };
 

@@ -27,6 +27,7 @@ Copyright_License {
 #include "Optimised.hpp"
 #include "RasterCanvas.hpp"
 #include "Screen/Custom/Cache.hpp"
+#include "Util/TStringView.hxx"
 
 #ifdef __ARM_NEON__
 #include "NEON.hpp"
@@ -217,13 +218,13 @@ Canvas::DrawKeyhole(int x, int y,
 }
 
 const PixelSize
-Canvas::CalcTextSize(const TCHAR *text) const
+Canvas::CalcTextSize(TStringView text) const
 {
   assert(text != nullptr);
 #ifdef UNICODE
   const WideToUTF8Converter text2(text);
 #else
-  const char* text2 = text;
+  const StringView text2 = text;
   assert(ValidateUTF8(text));
 #endif
 
@@ -266,7 +267,7 @@ CopyTextRectangle(SDLRasterCanvas &canvas, int x, int y,
   typedef typename Operations::SourcePixelTraits SourcePixelTraits;
   canvas.CopyRectangle<decltype(o), SourcePixelTraits>
     (x, y, width, height,
-     typename SourcePixelTraits::const_pointer_type(s.data),
+     typename SourcePixelTraits::const_pointer(s.data),
      s.pitch, o);
 }
 

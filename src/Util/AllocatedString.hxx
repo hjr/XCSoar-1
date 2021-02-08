@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Max Kellermann <max@duempel.org>
+ * Copyright 2015-2019 Max Kellermann <max.kellermann@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,8 +32,9 @@
 
 #include "StringPointer.hxx"
 
-#include <utility>
 #include <algorithm>
+#include <cstddef>
+#include <utility>
 
 /**
  * A string pointer whose memory is managed by this class.
@@ -43,9 +44,12 @@
 template<typename T=char>
 class AllocatedString {
 public:
-	typedef typename StringPointer<T>::value_type value_type;
-	typedef typename StringPointer<T>::pointer pointer;
-	typedef typename StringPointer<T>::const_pointer const_pointer;
+	using value_type = typename StringPointer<T>::value_type;
+	using reference = typename StringPointer<T>::reference;
+	using const_reference = typename StringPointer<T>::const_reference;
+	using pointer = typename StringPointer<T>::pointer;
+	using const_pointer = typename StringPointer<T>::const_pointer;
+	using size_type = std::size_t;
 
 	static constexpr value_type SENTINEL = '\0';
 
@@ -84,20 +88,28 @@ public:
 	static AllocatedString Duplicate(const_pointer begin,
 					 const_pointer end) {
 		auto p = new value_type[end - begin + 1];
-		*std::copy(begin, end, p) = 0;
+		*std::copy(begin, end, p) = SENTINEL;
 		return Donate(p);
 	}
 
 	static AllocatedString Duplicate(const_pointer begin,
-					 size_t length) {
+					 size_type length) {
 		auto p = new value_type[length + 1];
-		*std::copy_n(begin, length, p) = 0;
+		*std::copy_n(begin, length, p) = SENTINEL;
 		return Donate(p);
 	}
 
 	AllocatedString &operator=(AllocatedString &&src) {
 		std::swap(value, src.value);
 		return *this;
+	}
+
+	constexpr bool operator==(std::nullptr_t) const {
+		return value == nullptr;
+	}
+
+	constexpr bool operator!=(std::nullptr_t) const {
+		return value != nullptr;
 	}
 
 	constexpr bool IsNull() const {
@@ -112,10 +124,20 @@ public:
 		return *value == SENTINEL;
 	}
 
+	constexpr pointer data() const {
+		return value;
+	}
+
+	reference operator[](size_type i) {
+		return value[i];
+	}
+
+	const reference operator[](size_type i) const {
+		return value[i];
+	}
+
 	pointer Steal() {
-		pointer result = value;
-		value = nullptr;
-		return result;
+		return std::exchange(value, nullptr);
 	}
 
 	AllocatedString Clone() const {

@@ -27,7 +27,7 @@ Copyright_License {
 #include "InputLookup.hpp"
 #include "IO/LineReader.hpp"
 #include "Util/StringUtil.hpp"
-#include "Util/StringAPI.hpp"
+#include "Util/StringAPI.hxx"
 #include "Util/StaticString.hxx"
 #include "Util/EscapeBackslash.hpp"
 #include "Util/NumberParser.hpp"
@@ -87,7 +87,10 @@ struct EventBuilder {
 
       // All modes are valid at this point
       int mode_id = config.MakeMode(token);
-      assert(mode_id >= 0);
+      if (mode_id < 0) {
+        LogFormat(_T("Too many modes: %s at %u"), token, line);
+        continue;
+      }
 
       // Make label event
       // TODO code: Consider Reuse existing entries...

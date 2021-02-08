@@ -52,7 +52,7 @@ protected:
   Buffer buffer;
 
 public:
-  constexpr AllocatedArray():buffer(Buffer::Null()) {}
+  constexpr AllocatedArray():buffer(nullptr) {}
 
   explicit AllocatedArray(size_type _size)
     :buffer{new T[_size], _size} {
@@ -69,7 +69,7 @@ public:
 
   explicit AllocatedArray(AllocatedArray &&other)
     :buffer(other.buffer) {
-    other.buffer = Buffer::Null();
+    other.buffer = nullptr;
   }
 
   ~AllocatedArray() {
@@ -97,7 +97,7 @@ public:
    * Returns true if no memory was allocated so far.
    */
   constexpr bool empty() const {
-    return buffer.IsEmpty();
+    return buffer.empty();
   }
 
   /**

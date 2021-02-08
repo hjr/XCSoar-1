@@ -36,6 +36,8 @@ Copyright_License {
 #include "Screen/Util.hpp"
 #include "Util/AllocatedArray.hpp"
 #include "Util/Macros.hpp"
+#include "Util/TStringView.hxx"
+#include "Util/UTF8.hpp"
 
 #ifdef USE_GLSL
 #include "Shaders.hpp"
@@ -51,13 +53,22 @@ Copyright_License {
 #include "Util/ConvertString.hpp"
 #endif
 
-#ifndef NDEBUG
-#include "Util/UTF8.hpp"
-#endif
-
 #include <assert.h>
 
 AllocatedArray<RasterPoint> Canvas::vertex_buffer;
+
+static TStringView
+ClipText(TStringView text, int x, unsigned canvas_width) noexcept
+{
+  if (text.empty() || x >= int(canvas_width))
+    return nullptr;
+
+  unsigned max_width = canvas_width - x;
+  unsigned max_chars = max_width / 8u; // TODO: use real font width?
+
+  text.size = TruncateStringUTF8(text.data, max_chars, text.size);
+  return text;
+}
 
 void
 Canvas::DrawFilledRectangle(int left, int top, int right, int bottom,
@@ -551,13 +562,13 @@ Canvas::DrawFocusRectangle(PixelRect rc)
 }
 
 const PixelSize
-Canvas::CalcTextSize(const TCHAR *text) const
+Canvas::CalcTextSize(TStringView text) const
 {
   assert(text != nullptr);
 #ifdef UNICODE
   const WideToUTF8Converter text2(text);
 #else
-  const char* text2 = text;
+  const StringView text2 = text;
   assert(ValidateUTF8(text));
 #endif
 
@@ -626,7 +637,11 @@ Canvas::DrawText(int x, int y, const TCHAR *text)
   if (font == nullptr)
     return;
 
-  GLTexture *texture = TextCache::Get(*font, text2);
+  const StringView text3 = ClipText(text2, x, size.cx);
+  if (text3.empty())
+    return;
+
+  GLTexture *texture = TextCache::Get(*font, text3);
   if (texture == nullptr)
     return;
 
@@ -665,7 +680,11 @@ Canvas::DrawTransparentText(int x, int y, const TCHAR *text)
   if (font == nullptr)
     return;
 
-  GLTexture *texture = TextCache::Get(*font, text2);
+  const StringView text3 = ClipText(text2, x, size.cx);
+  if (text3.empty())
+    return;
+
+  GLTexture *texture = TextCache::Get(*font, text3);
   if (texture == nullptr)
     return;
 
@@ -701,7 +720,11 @@ Canvas::DrawClippedText(int x, int y,
   if (font == nullptr)
     return;
 
-  GLTexture *texture = TextCache::Get(*font, text2);
+  const StringView text3 = ClipText(text2, 0, width);
+  if (text3.empty())
+    return;
+
+  GLTexture *texture = TextCache::Get(*font, text3);
   if (texture == nullptr)
     return;
 

@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: buildpack-deps:stretch
+      - image: buildpack-deps:buster
 
     steps:
       - type: shell
@@ -16,6 +16,7 @@ jobs:
             libasound2-dev \
             libgeotiff-dev \
             libgl1-mesa-dev \
+            libglvnd-dev \
             liblua5.2-dev \
             librsvg2-bin \
             quilt \

@@ -29,7 +29,7 @@ Copyright_License {
 #include "LogFile.hpp"
 #include "Profile/Profile.hpp"
 #include "Util/StringUtil.hpp"
-#include "Util/StringAPI.hpp"
+#include "Util/StringAPI.hxx"
 
 #ifdef HAVE_NATIVE_GETTEXT
 #include <locale.h>
@@ -487,10 +487,8 @@ ReadLanguageFile()
   if (base == NULL)
     base = value;
 
-  if (base == value) {
-    LocalPath(second_buffer, value);
-    value = second_buffer;
-  }
+  if (base == value)
+    value = LocalPath(second_buffer, value);
 
   if (!LoadLanguageFile(value) && !ReadResourceLanguageFile(base))
     AutoDetectLanguage();
