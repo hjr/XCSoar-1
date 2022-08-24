@@ -316,7 +316,7 @@ static constexpr MetaData meta_data[] = {
   {
     N_("Thermal gain"),
     N_("TC Gain"),
-    N_("The altitude gained/lost in the current thermal."),
+    N_("The altitude gained/lost in the current thermal, and the vario integral of all values below zero."),
     UpdateInfoBoxThermalGain,
   },
 

@@ -86,6 +86,7 @@ UpdateInfoBoxThermalLastGain(InfoBoxData &data) noexcept
   }
 
   data.SetValueFromAltitude(thermal.gain);
+  data.SetCommentFromAltitude(thermal.loss);
 }
 
 void
@@ -138,6 +139,7 @@ UpdateInfoBoxThermalGain(InfoBoxData &data) noexcept
   }
 
   data.SetValueFromAltitude(thermal.gain);
+  data.SetCommentFromAltitude(thermal.loss);
 }
 
 void

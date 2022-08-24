@@ -74,6 +74,13 @@ InfoBoxData::SetCommentFromAlternateAltitude(double new_value) noexcept
 }
 
 void
+InfoBoxData::SetCommentFromAltitude(double new_value) noexcept
+{
+  FormatUserAltitude(new_value, comment.buffer(), true);
+  SetValueUnit(Units::current.altitude_unit);
+}
+
+void
 InfoBoxData::SetCommentFromSpeed(double new_value, bool precision) noexcept
 {
   FormatUserSpeed(new_value, comment.buffer(), true, precision);
