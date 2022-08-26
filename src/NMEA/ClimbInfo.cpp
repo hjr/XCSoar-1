@@ -28,6 +28,7 @@ OneClimbInfo::Clear()
 {
   duration = {};
   gain = 0;
+  loss = 0;
   lift_rate = 0;
   start_altitude = 0;
 }

@@ -194,8 +194,11 @@ GlideComputerAirData::CurrentThermal(const MoreData &basic,
       current_thermal.Clear();
     }
     current_thermal.end_time = basic.time;
-    current_thermal.gain =
-      basic.TE_altitude - circling.climb_start_altitude_te;
+    double tmp_gain = basic.TE_altitude - circling.climb_start_altitude_te;
+    if ( tmp_gain < current_thermal.gain ) {
+      current_thermal.loss += tmp_gain - current_thermal.gain;
+    }
+    current_thermal.gain = tmp_gain;
     current_thermal.CalculateAll();
   }
 }

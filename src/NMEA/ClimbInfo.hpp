@@ -45,6 +45,12 @@ struct OneClimbInfo
   /** Altitude gained while in the thermal [m]. May be negative. */
   double gain;
 
+  /** Altitude lost while in the thermal [m]. This accumulates all negative TE altimeter steps while in this thermal. 
+   * Th.m. gain := <total climbed altiude> + loss,
+   * the loss is always <= 0; and gain always >= loss.
+   */
+  double loss;
+
   /** Start altitude [m] */
   double start_altitude;
 
